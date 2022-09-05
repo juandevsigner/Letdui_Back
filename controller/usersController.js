@@ -1,22 +1,28 @@
 import User from "../models/User.js";
 import genToken from "../helpers/genToken.js";
 import createJWT from "../helpers/createJWT.js";
+import { emailRegister, emailRecoverPass } from "../helpers/emails.js";
 
 const createUsers = async (req, res) => {
   const { email } = req.body;
   const mailExists = await User.findOne({ email });
   if (mailExists) {
     return res.status(400).json({
-      msg: "the email is registered",
+      msg: "The email is registered",
     });
   }
   try {
     const user = new User(req.body);
     user.token = genToken();
-    const userSave = await user.save();
+    await user.save();
+
+    emailRegister({
+      name: user.name,
+      email: user.email,
+      token: user.token,
+    });
     res.json({
-      msg: "The user has been created!",
-      userSave,
+      msg: "The user has been created! Check your email to confirm your account",
     });
   } catch (error) {
     console.log(error);
@@ -54,7 +60,7 @@ const auth = async (req, res) => {
       token: createJWT(user._id),
     });
   } else {
-    const error = new Error(`password incorrect`);
+    const error = new Error(`Incorrect Password `);
     return res.status(400).json({
       msg: error.message,
     });
@@ -65,7 +71,7 @@ const confirm = async (req, res) => {
   const { token } = req.params;
   const userConfirm = await User.findOne({ token });
   if (!userConfirm) {
-    const error = new Error(`token invalid`);
+    const error = new Error(`INVALID TOKEN!`);
     return res.status(400).json({
       msg: error.message,
     });
@@ -88,13 +94,18 @@ const recoverPassword = async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(400).json({
-      msg: "the email does not registered",
+      msg: "The email does not registered",
     });
   }
 
   try {
     user.token = genToken();
     await user.save();
+    emailRecoverPass({
+      name: user.name,
+      email: user.email,
+      token: user.token,
+    });
     res.status(200).json({ msg: "We send you an email with the instructions" });
   } catch (error) {
     console.log(error);
