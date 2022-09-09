@@ -13,10 +13,9 @@ const createTasks = async (req, res) => {
 
   try {
     const taskSave = await Task.create(req.body);
-    res.status(200).json({
-      msg: "The task has been created correctly",
-      taskSave,
-    });
+    existProject.tasks.push(taskSave._id);
+    await existProject.save();
+    res.status(200).json(taskSave);
   } catch (error) {
     console.log(error);
   }
@@ -52,7 +51,7 @@ const updateTask = async (req, res) => {
   try {
     const taskSave = await task.save();
 
-    res.json({ msg: "The task has been update correctly", taskSave });
+    res.json(taskSave);
   } catch (error) {
     console.log(error);
   }
