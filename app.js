@@ -23,6 +23,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/task", taskRoutes);

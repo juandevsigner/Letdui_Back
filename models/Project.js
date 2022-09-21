@@ -23,7 +23,7 @@ const projectSchema = mongoose.Schema(
     },
     creator: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Usuario",
     },
     tasks: [
       {
@@ -34,7 +34,7 @@ const projectSchema = mongoose.Schema(
     collaborators: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Usuario",
       },
     ],
   },

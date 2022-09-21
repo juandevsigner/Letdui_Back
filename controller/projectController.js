@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Project from "../models/Project.js";
-import Task from "../models/Task.js";
+import User from "../models/User.js";
 
 const getProjects = async (req, res) => {
   const projects = await Project.find()
@@ -24,7 +24,9 @@ const newProject = async (req, res) => {
 
 const getProject = async (req, res) => {
   const { id } = req.params;
-  const project = await Project.findById(id).populate("tasks");
+  const project = await Project.findById(id)
+    .populate("tasks")
+    .populate("collaborators", "name email");
 
   if (project.creator.toString() !== req.user._id.toString()) {
     const error = new Error("Project no found!!");
@@ -83,7 +85,56 @@ const deleteProject = async (req, res) => {
   }
 };
 
-const addCollaborator = async (req, res) => {};
+const findCollaborator = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email }).select(
+    "-createdAt -updatedAt -password -token -confirmed -__v"
+  );
+
+  if (!user) {
+    const error = new Error("User does not exist");
+    return res.status(404).json({ msg: error.message });
+  }
+  res.json(user);
+};
+
+const addCollaborator = async (req, res) => {
+  const { email } = req.body;
+  const project = await Project.findById(req.params.id);
+  if (!project) {
+    const error = new Error("Project Not Found");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.creator.toString() !== req.user._id.toString()) {
+    const error = new Error("Invalid Action");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  const user = await User.findOne({ email }).select(
+    "-createdAt -updatedAt -password -token -confirmed -__v"
+  );
+
+  if (!user) {
+    const error = new Error("User does not exist");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.creator.toString() === user._id.toString()) {
+    const error = new Error("Invalid Action");
+    return res.status(400).json({ msg: error.message });
+  }
+
+  if (project.collaborators.includes(user._id)) {
+    const error = new Error("User has already been added");
+    return res.status(400).json({ msg: error.message });
+  }
+
+  project.collaborators.push(user._id);
+  await project.save();
+  res.json({ msg: "User has been added correctly" });
+};
 
 const removeCollaboratos = async (req, res) => {};
 
@@ -93,6 +144,7 @@ export {
   getProject,
   editProject,
   deleteProject,
+  findCollaborator,
   addCollaborator,
   removeCollaboratos,
 };

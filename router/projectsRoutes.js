@@ -6,6 +6,7 @@ import {
   deleteProject,
   editProject,
   newProject,
+  findCollaborator,
   addCollaborator,
   removeCollaboratos,
 } from "../controller/projectController.js";
@@ -20,7 +21,8 @@ router
   .put(checkAuth, checkIdMongo, editProject)
   .delete(checkAuth, checkIdMongo, deleteProject);
 
-router.post("/add-collaborator/:id", checkAuth, addCollaborator);
-router.post("/remove-collaborator/:id", checkAuth, removeCollaboratos);
+router.post("/team", findCollaborator);
+router.post("/team/:id", checkAuth, addCollaborator);
+router.delete("/team/:id", checkAuth, removeCollaboratos);
 
 export default router;
