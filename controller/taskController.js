@@ -67,7 +67,9 @@ const removeTask = async (req, res) => {
   }
 
   try {
-    await task.deleteOne();
+    const project = await Project.findById(task.project);
+    project.tasks.pull(task._id);
+    await Promise.allSettled([await project.save(), await task.deleteOne()]);
     res.status(200).json({
       msg: "The task has been delete correctly!!",
     });
@@ -76,6 +78,18 @@ const removeTask = async (req, res) => {
   }
 };
 
-const changeState = async (req, res) => {};
+const changeState = async (req, res) => {
+  const { id } = req.params;
+  const task = await Task.findById(id).populate("project");
+
+  task.state = !task.state;
+  task.completed = req.user._id;
+  await task.save();
+
+  const taskSave = await Task.findById(id)
+    .populate("project")
+    .populate("completed");
+  res.json(taskSave);
+};
 
 export { createTasks, getTask, removeTask, updateTask, changeState };

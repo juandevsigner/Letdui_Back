@@ -23,6 +23,6 @@ router
 
 router.post("/team", findCollaborator);
 router.post("/team/:id", checkAuth, addCollaborator);
-router.delete("/team/:id", checkAuth, removeCollaboratos);
+router.post("/delete-collaborator/:id", checkAuth, removeCollaboratos);
 
 export default router;

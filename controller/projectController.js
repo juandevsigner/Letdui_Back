@@ -3,10 +3,9 @@ import Project from "../models/Project.js";
 import User from "../models/User.js";
 
 const getProjects = async (req, res) => {
-  const projects = await Project.find()
-    .where("creator")
-    .equals(req.user)
-    .select("-tasks");
+  const projects = await Project.find({
+    $or: [{ collaborators: { $in: req.user } }, { creator: { $in: req.user } }],
+  }).select("-tasks");
   res.json(projects);
 };
 
@@ -25,11 +24,19 @@ const newProject = async (req, res) => {
 const getProject = async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id)
-    .populate("tasks")
+    .populate({
+      path: "tasks",
+      populate: { path: "completed", select: "name" },
+    })
     .populate("collaborators", "name email");
 
-  if (project.creator.toString() !== req.user._id.toString()) {
-    const error = new Error("Project no found!!");
+  if (
+    project.creator.toString() !== req.user._id.toString() &&
+    !project.collaborators.some(
+      collaborator => collaborator._id.toString() === req.user._id.toString()
+    )
+  ) {
+    const error = new Error("Action Not Valid");
     return res.status(401).json({
       msg: error.message,
     });
@@ -136,7 +143,23 @@ const addCollaborator = async (req, res) => {
   res.json({ msg: "User has been added correctly" });
 };
 
-const removeCollaboratos = async (req, res) => {};
+const removeCollaboratos = async (req, res) => {
+  const project = await Project.findById(req.params.id);
+
+  if (!project) {
+    const error = new Error("Project Not Found");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.creator.toString() !== req.user._id.toString()) {
+    const error = new Error("Invalid Action");
+    return res.status(404).json({ msg: error.message });
+  }
+
+  project.collaborators.pull(req.body.id);
+  await project.save();
+  res.json({ msg: "User has been remove correctly" });
+};
 
 export {
   getProjects,
