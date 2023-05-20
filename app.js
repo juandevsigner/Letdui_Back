@@ -13,7 +13,7 @@ dotenv.config();
 conectDb();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL
+  origin: '*'
 }));
 
 app.use("/api/users", userRoutes);
@@ -23,7 +23,7 @@ app.use("/api/task", taskRoutes);
 const PORT = process.env.PORT || 3001;
 
 const server = app.listen(PORT, () => {
-  console.log("**SERVER RUN IN PORT**", PORT);
+  console.log("**SERVER RUN IN PORT !!**", PORT);
 });
 
 // SOCKETS
