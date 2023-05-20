@@ -12,18 +12,9 @@ app.use(express.json());
 dotenv.config();
 conectDb();
 
-const whitelist = [];
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (whitelist.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Error Cors"));
-    }
-  },
-};
-
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: process.env.FRONTEND_URL
+}));
 
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectsRoutes);
