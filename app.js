@@ -12,7 +12,7 @@ app.use(express.json());
 dotenv.config();
 conectDb();
 
-const whitelist = [process.env.FRONTEND_URL];
+const whitelist = [];
 const corsOptions = {
   origin: function (origin, callback) {
     if (whitelist.includes(origin)) {
